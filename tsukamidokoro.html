@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#10131a">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ツカミドコロ | UFOキャッチャー攻略アシスタント</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10131a;
+    --bg-grid:#161b25;
+    --panel:#1a2029;
+    --panel-2:#222a36;
+    --border:#2e3848;
+    --amber:#ffb627;
+    --pink:#ff7fa8;
+    --teal:#5eead4;
+    --text:#f4f1ea;
+    --text-muted:#8d97ab;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    background-color:var(--bg);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(94,234,212,0.035) 0px, rgba(94,234,212,0.035) 1px, transparent 1px, transparent 28px),
+      repeating-linear-gradient(90deg, rgba(94,234,212,0.035) 0px, rgba(94,234,212,0.035) 1px, transparent 1px, transparent 28px);
+    color:var(--text);
+    min-height:100%;
+    display:flex;
+    justify-content:center;
+    padding:0;
+  }
+  .app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    padding:20px 18px 40px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--border);
+  }
+  .eyebrow{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px;
+    letter-spacing:0.22em;
+    color:var(--teal);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:8px; height:8px;
+    border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 8px var(--teal);
+    animation:blink 2s ease-in-out infinite;
+  }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+  h1{
+    font-size:30px;
+    font-weight:900;
+    letter-spacing:0.04em;
+  }
+  .sub{
+    font-size:13px;
+    color:var(--text-muted);
+    line-height:1.6;
+  }
+  .scope-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:4px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--amber);
+    border:1px solid rgba(255,182,39,0.35);
+    background:rgba(255,182,39,0.08);
+    border-radius:999px;
+    padding:4px 10px;
+    width:fit-content;
+  }
+
+  /* ---------- Scanner / Upload ---------- */
+  .scanner{
+    border:2px dashed var(--border);
+    border-radius:16px;
+    aspect-ratio:4/3;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    overflow:hidden;
+    background:var(--panel);
+    transition:border-color 0.2s ease, background 0.2s ease;
+  }
+  .scanner:active{ background:var(--panel-2); }
+  .scanner.has-image{ cursor:default; border-style:solid; }
+  .corner{
+    position:absolute;
+    width:26px; height:26px;
+    border:3px solid var(--teal);
+    opacity:0.85;
+  }
+  .corner.tl{ top:14px; left:14px; border-right:none; border-bottom:none; border-radius:6px 0 0 0; }
+  .corner.tr{ top:14px; right:14px; border-left:none; border-bottom:none; border-radius:0 6px 0 0; }
+  .corner.bl{ bottom:14px; left:14px; border-right:none; border-top:none; border-radius:0 0 0 6px; }
+  .corner.br{ bottom:14px; right:14px; border-left:none; border-top:none; border-radius:0 0 6px 0; }
+
+  .placeholder{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    color:var(--text-muted);
+    text-align:center;
+    padding:0 24px;
+    z-index:1;
+  }
+  .placeholder svg{ width:46px; height:46px; stroke:var(--text-muted); }
+  .placeholder strong{
+    color:var(--text);
+    font-size:15px;
+    font-weight:700;
+  }
+  .placeholder span{ font-size:12px; line-height:1.7; }
+  .placeholder-buttons{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    margin-top:8px;
+  }
+  .placeholder-buttons .btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+  .placeholder-buttons .btn svg{
+    width:18px; height:18px;
+    flex-shrink:0;
+  }
+
+  .preview-wrap{
+    position:absolute; inset:0;
+    display:none;
+  }
+  .preview-wrap img{
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .scan-line{
+    position:absolute;
+    left:0; right:0; top:0;
+    height:2px;
+    background:linear-gradient(90deg, transparent, var(--teal), transparent);
+    box-shadow:0 0 12px var(--teal);
+    animation:scan 2.2s linear infinite;
+    display:none;
+  }
+  @keyframes scan{
+    0%{ top:0%; opacity:0.9; }
+    50%{ opacity:1; }
+    100%{ top:100%; opacity:0.9; }
+  }
+  .loading-tag{
+    position:absolute;
+    bottom:14px; left:14px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px;
+    letter-spacing:0.15em;
+    color:var(--teal);
+    background:rgba(16,19,26,0.7);
+    padding:5px 10px;
+    border-radius:6px;
+    display:none;
+  }
+
+  /* ---------- Reticle (signature element) ---------- */
+  .reticle{
+    position:absolute;
+    width:84px; height:84px;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    display:none;
+  }
+  .reticle svg{
+    width:100%; height:100%;
+    stroke:var(--teal);
+    fill:none;
+    stroke-width:2;
+    filter:drop-shadow(0 0 6px rgba(94,234,212,0.8));
+  }
+  .reticle .saucer{ fill:rgba(94,234,212,0.12); }
+  .reticle .dot{ fill:var(--amber); stroke:none; }
+  .ring{
+    position:absolute; inset:0;
+    border:2px solid var(--teal);
+    border-radius:50%;
+    opacity:0;
+    animation:ring 2.2s ease-out infinite;
+  }
+  .ring.delay{ animation-delay:1.1s; }
+  @keyframes ring{
+    0%{ transform:scale(0.4); opacity:0.9; }
+    100%{ transform:scale(1.7); opacity:0; }
+  }
+
+  /* ---------- Tabs ---------- */
+  .tabs{
+    display:flex;
+    gap:6px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:4px;
+  }
+  .tab{
+    flex:1;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-align:center;
+    padding:11px 6px;
+    border-radius:9px;
+    border:none;
+    background:transparent;
+    color:var(--text-muted);
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .tab.active{
+    background:var(--panel-2);
+    color:var(--text);
+  }
+  .tab .tab-num{
+    color:var(--amber);
+    margin-right:4px;
+  }
+  .tab-panel{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+
+  /* ---------- Video preview ---------- */
+  .preview-wrap video{
+    width:100%; height:100%;
+    object-fit:contain;
+    background:#000;
+    display:block;
+  }
+
+  /* ---------- Frame comparison ---------- */
+  .frame-compare{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .frame-box{
+    flex:1;
+    position:relative;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    aspect-ratio:4/3;
+    background:#000;
+  }
+  .frame-box img{
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .frame-label{
+    position:absolute;
+    bottom:6px; left:6px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:10px;
+    letter-spacing:0.1em;
+    background:rgba(16,19,26,0.7);
+    color:var(--teal);
+    padding:3px 8px;
+    border-radius:6px;
+  }
+  .frame-arrow{
+    flex-shrink:0;
+    width:18px; height:18px;
+    color:var(--text-muted);
+  }
+
+  /* ---------- Badges row ---------- */
+  .badges-row{
+    display:flex;
+    gap:10px;
+  }
+  .badges-row .confidence{ flex:1; }
+
+  /* ---------- Recommendation banner ---------- */
+  .rec-banner{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    border-radius:14px;
+    padding:16px;
+    border:1px solid var(--border);
+  }
+  .rec-banner .rec-icon{
+    width:42px; height:42px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .rec-banner .rec-icon svg{ width:22px; height:22px; }
+  .rec-title{
+    font-size:17px;
+    font-weight:900;
+    margin-bottom:4px;
+  }
+  .rec-reason{
+    font-size:12.5px;
+    line-height:1.7;
+    color:#d6d9e2;
+  }
+  .rec-banner.continue{ background:rgba(94,234,212,0.10); border-color:rgba(94,234,212,0.35); }
+  .rec-banner.continue .rec-icon{ background:rgba(94,234,212,0.18); color:var(--teal); }
+  .rec-banner.continue .rec-title{ color:var(--teal); }
+  .rec-banner.stop{ background:rgba(255,127,168,0.10); border-color:rgba(255,127,168,0.35); }
+  .rec-banner.stop .rec-icon{ background:rgba(255,127,168,0.18); color:var(--pink); }
+  .rec-banner.stop .rec-title{ color:var(--pink); }
+  .rec-banner.retry{ background:rgba(255,182,39,0.10); border-color:rgba(255,182,39,0.35); }
+  .rec-banner.retry .rec-icon{ background:rgba(255,182,39,0.18); color:var(--amber); }
+  .rec-banner.retry .rec-title{ color:var(--amber); }
+
+  /* ---------- Action row ---------- */
+  .actions{
+    display:flex;
+    gap:10px;
+  }
+  .btn{
+    flex:1;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-align:center;
+    padding:13px 14px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--panel);
+    color:var(--text);
+    cursor:pointer;
+    transition:border-color 0.15s ease, background 0.15s ease;
+  }
+  .btn.primary{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:#1a1305;
+  }
+  .btn:active{ background:var(--panel-2); }
+  .btn.primary:active{ filter:brightness(0.92); }
+  .hidden{ display:none !important; }
+
+  /* ---------- Result panel ---------- */
+  .result{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .summary{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+  }
+  .summary .label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .summary .target-name{
+    font-size:17px;
+    font-weight:700;
+    line-height:1.5;
+  }
+  .confidence{
+    flex-shrink:0;
+    text-align:center;
+    font-family:'Space Grotesk', sans-serif;
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:11px;
+    letter-spacing:0.1em;
+    white-space:nowrap;
+  }
+  .confidence .num{
+    display:block;
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:0;
+  }
+  .confidence.high{ background:rgba(94,234,212,0.12); color:var(--teal); border:1px solid rgba(94,234,212,0.35); }
+  .confidence.medium{ background:rgba(255,182,39,0.12); color:var(--amber); border:1px solid rgba(255,182,39,0.35); }
+  .confidence.low{ background:rgba(255,127,168,0.12); color:var(--pink); border:1px solid rgba(255,127,168,0.35); }
+
+  .advice-card{
+    display:flex;
+    gap:14px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+  }
+  .advice-card .num{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    font-weight:700;
+    color:var(--amber);
+    flex-shrink:0;
+    padding-top:1px;
+  }
+  .advice-card .body h3{
+    font-size:14px;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .advice-card .body p{
+    font-size:13px;
+    line-height:1.75;
+    color:#d6d9e2;
+  }
+
+  .disclaimer{
+    font-size:11px;
+    line-height:1.7;
+    color:var(--text-muted);
+    padding:0 4px;
+  }
+
+  /* ---------- AI Provider switcher ---------- */
+  .ai-switcher{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px;
+  }
+  .ai-switcher-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--text-muted);
+    text-transform:uppercase;
+  }
+  .ai-btn-row{
+    display:flex;
+    gap:8px;
+  }
+  .ai-btn{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    padding:10px 6px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    background:none;
+    color:var(--text-muted);
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .ai-btn .ai-logo{ font-size:20px; line-height:1; }
+  .ai-btn.active-claude{ border-color:var(--teal); color:var(--teal); background:rgba(94,234,212,0.07); }
+  .ai-btn.active-gemini{ border-color:#4285f4; color:#4285f4; background:rgba(66,133,244,0.07); }
+  .ai-btn.active-gpt{ border-color:#10a37f; color:#10a37f; background:rgba(16,163,127,0.07); }
+  .api-key-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .api-key-row input{
+    flex:1;
+    background:var(--bg);
+    border:1.5px solid var(--border);
+    border-radius:9px;
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    font-size:12px;
+    padding:10px 12px;
+    letter-spacing:0.04em;
+  }
+  .api-key-row input:focus{ outline:none; border-color:var(--teal); }
+  .api-key-row input::placeholder{ color:var(--text-muted); }
+  .key-toggle{
+    flex-shrink:0;
+    background:none;
+    border:none;
+    color:var(--text-muted);
+    cursor:pointer;
+    padding:4px;
+    font-size:16px;
+  }
+  .ai-note{
+    font-size:11px;
+    color:var(--text-muted);
+    line-height:1.6;
+  }
+  .ai-note.claude-note{ color:var(--teal); }
+  .ai-note.key-saved{ color:var(--amber); }
+
+  /* ---------- Machine type selector ---------- */
+  .machine-select-section{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .machine-select-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--text-muted);
+    text-transform:uppercase;
+  }
+  .machine-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+  }
+  .machine-card.extra{ display:none; }
+  .machine-grid.expanded .machine-card.extra{ display:flex; }
+  .show-more-btn{
+    width:100%;
+    background:none;
+    border:1px dashed var(--border);
+    border-radius:10px;
+    color:var(--text-muted);
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11.5px;
+    letter-spacing:0.05em;
+    padding:10px;
+    margin-top:8px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .show-more-btn svg{
+    width:14px; height:14px;
+    transition:transform 0.2s;
+  }
+  .show-more-btn.expanded svg{ transform:rotate(180deg); }
+  .machine-card{
+    background:var(--panel);
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    padding:12px 10px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .machine-card:active{ background:var(--panel-2); }
+  .machine-card.selected{
+    border-color:var(--teal);
+    background:rgba(94,234,212,0.06);
+  }
+  .machine-card .mc-icon{
+    font-size:22px;
+    line-height:1;
+  }
+  .machine-card .mc-name{
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--text);
+    line-height:1.3;
+  }
+  .machine-card .mc-models{
+    font-size:10.5px;
+    color:var(--text-muted);
+    line-height:1.5;
+  }
+  .machine-card.selected .mc-name{ color:var(--teal); }
+
+  .model-select-row{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .model-select-row select{
+    width:100%;
+    background:var(--panel);
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    color:var(--text);
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:13px;
+    padding:11px 14px;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d97ab' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    background-size:16px;
+    cursor:pointer;
+  }
+  .model-select-row select:focus{ outline:none; border-color:var(--teal); }
+  .model-select-row select option{ background:#1a2029; }
+
+  /* ---------- Error state ---------- */
+  .error-box{
+    background:rgba(255,127,168,0.08);
+    border:1px solid rgba(255,127,168,0.35);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13px;
+    line-height:1.7;
+    color:var(--pink);
+  }
+
+  /* ---------- Toggle switches ---------- */
+  .toggle-group{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px 16px;
+  }
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .toggle-info{ flex:1; }
+  .toggle-info .toggle-title{
+    font-size:13px;
+    font-weight:700;
+    color:var(--text);
+    margin-bottom:2px;
+  }
+  .toggle-info .toggle-desc{
+    font-size:11px;
+    color:var(--text-muted);
+    line-height:1.5;
+  }
+  .toggle-switch{
+    flex-shrink:0;
+    position:relative;
+    width:44px; height:24px;
+  }
+  .toggle-switch input{
+    opacity:0; width:0; height:0; position:absolute;
+  }
+  .toggle-track{
+    position:absolute; inset:0;
+    background:var(--border);
+    border-radius:999px;
+    cursor:pointer;
+    transition:background 0.2s;
+  }
+  .toggle-track::after{
+    content:'';
+    position:absolute;
+    left:3px; top:3px;
+    width:18px; height:18px;
+    border-radius:50%;
+    background:#fff;
+    transition:transform 0.2s;
+  }
+  .toggle-switch input:checked + .toggle-track{ background:var(--teal); }
+  .toggle-switch input:checked + .toggle-track::after{ transform:translateX(20px); }
+  .toggle-divider{ height:1px; background:var(--border); margin:2px 0; }
+
+  /* ---------- Power meter ---------- */
+  .power-meter{
+    display:flex;
+    gap:6px;
+    margin-top:8px;
+    align-items:center;
+  }
+  .power-bar{
+    flex:1; height:6px;
+    border-radius:3px;
+    background:var(--border);
+    overflow:hidden;
+  }
+  .power-bar .fill{
+    height:100%; border-radius:3px;
+    transition:width 0.5s ease;
+  }
+  .power-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:11px; color:var(--text-muted);
+    white-space:nowrap; min-width:28px; text-align:right;
+  }
+
+  /* ---------- 3-frame strip ---------- */
+  .frame-strip{
+    display:flex; gap:5px; align-items:center;
+  }
+  .frame-strip .frame-box{ flex:1; }
+  .frame-strip .frame-arrow{
+    flex-shrink:0; width:13px; height:13px; color:var(--text-muted);
+  }
+
+  footer{
+    margin-top:auto;
+    padding-top:10px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:10px;
+    letter-spacing:0.12em;
+    color:#4a5266;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="eyebrow">scanning ready</div>
+    <h1>ツカミドコロ</h1>
+    <p class="sub">UFOキャッチャーの写真や動画から、AIが「次の一手」と「続行すべきか」をアドバイスします。</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tabNext" type="button"><span class="tab-num">01</span>次の一手</button>
+    <button class="tab" id="tabContinue" type="button"><span class="tab-num">02</span>続行判断</button>
+  </div>
+
+  <!-- AI Provider switcher -->
+  <div class="ai-switcher">
+    <div class="ai-switcher-label">使用するAI</div>
+    <div class="ai-btn-row">
+      <button class="ai-btn active-claude" data-ai="claude" id="aiClaude" type="button">
+        <span class="ai-logo">🤖</span>Claude
+      </button>
+      <button class="ai-btn" data-ai="gemini" id="aiGemini" type="button">
+        <span class="ai-logo">✨</span>Gemini
+      </button>
+      <button class="ai-btn" data-ai="gpt" id="aiGpt" type="button">
+        <span class="ai-logo">💬</span>ChatGPT
+      </button>
+    </div>
+    <div id="aiKeySection">
+      <div class="api-key-row">
+        <input type="password" id="apiKeyInput" placeholder="APIキーを入力（sk-… / AIza…）">
+        <button class="key-toggle" id="keyToggle" type="button" title="表示/非表示">👁</button>
+      </div>
+      <div class="ai-note" id="aiNote">キーはこのページ内のメモリにのみ保持され、外部には送信されません。</div>
+    </div>
+    <div class="ai-note claude-note hidden" id="aiClaudeNote">✅ Claude.ai内で動作中 — APIキー不要です</div>
+  </div>
+
+  <div class="tab-panel" id="panelNext">
+
+  <div class="machine-select-section" id="machineSelectSection">
+    <div class="machine-select-label">筐体のタイプを選んでください</div>
+    <div class="machine-grid">
+      <div class="machine-card selected" data-type="2claw">
+        <div class="mc-icon">🦾</div>
+        <div class="mc-name">2本爪アーム</div>
+        <div class="mc-models">UFO CATCHER 10/9<br>クレナ3 / クレナフレックス</div>
+      </div>
+      <div class="machine-card" data-type="bridge">
+        <div class="mc-icon">🌉</div>
+        <div class="mc-name">橋渡し設定</div>
+        <div class="mc-models">棒・板の上に景品が<br>置かれているタイプ</div>
+      </div>
+      <div class="machine-card" data-type="valley">
+        <div class="mc-icon">🏔️</div>
+        <div class="mc-name">谷落とし設定</div>
+        <div class="mc-models">前後の斜面の谷に<br>景品を落とすタイプ</div>
+      </div>
+      <div class="machine-card extra" data-type="rubber_shovel">
+        <div class="mc-icon">🖤</div>
+        <div class="mc-name">ラバーシャベル</div>
+        <div class="mc-models">ゴム爪・シールド台<br>ラウンドワンに多い</div>
+      </div>
+      <div class="machine-card" data-type="platform">
+        <div class="mc-icon">🗻</div>
+        <div class="mc-name">台乗せ・一本橋</div>
+        <div class="mc-models">台や棒1本の上に<br>景品が乗っているタイプ</div>
+      </div>
+      <div class="machine-card" data-type="crane3">
+        <div class="mc-icon">🏗️</div>
+        <div class="mc-name">3本爪アーム</div>
+        <div class="mc-models">UFO CATCHER TRIPLE<br>クレナハイブリッド等</div>
+      </div>
+      <div class="machine-card" data-type="push">
+        <div class="mc-icon">➡️</div>
+        <div class="mc-name">横アーム押し出し</div>
+        <div class="mc-models">プライズサーカス等</div>
+      </div>
+      <div class="machine-card" data-type="drop">
+        <div class="mc-icon">🎯</div>
+        <div class="mc-name">落とし穴・リング</div>
+        <div class="mc-models">キャッチリング等</div>
+      </div>
+      <div class="machine-card extra" data-type="push_box">
+        <div class="mc-icon">📦</div>
+        <div class="mc-name">箱・台押し出し</div>
+        <div class="mc-models">バンパーキャッチャー等</div>
+      </div>
+      <div class="machine-card extra" data-type="hook_ring">
+        <div class="mc-icon">🪝</div>
+        <div class="mc-name">フック・リング引っ掛け</div>
+        <div class="mc-models">鍵付きカプセル系</div>
+      </div>
+      <div class="machine-card extra" data-type="recoil">
+        <div class="mc-icon">🔄</div>
+        <div class="mc-name">反動台</div>
+        <div class="mc-models">重量景品を反動で寄せる</div>
+      </div>
+      <div class="machine-card extra" data-type="needle">
+        <div class="mc-icon">📍</div>
+        <div class="mc-name">剣山・ピン刺し</div>
+        <div class="mc-models">針の上にフィギュア等</div>
+      </div>
+      <div class="machine-card extra" data-type="ball">
+        <div class="mc-icon">⚪</div>
+        <div class="mc-name">ボール転がし</div>
+        <div class="mc-models">レール間隔に転がす</div>
+      </div>
+      <div class="machine-card extra" data-type="capsule">
+        <div class="mc-icon">🔑</div>
+        <div class="mc-name">カプセル取り</div>
+        <div class="mc-models">バンビーノ系</div>
+      </div>
+      <div class="machine-card extra" data-type="other">
+        <div class="mc-icon">❓</div>
+        <div class="mc-name">その他・不明</div>
+        <div class="mc-models">写真から判断させる</div>
+      </div>
+    </div>
+    <button class="show-more-btn" id="showMoreBtn" type="button">
+      <span id="showMoreLabel">他のタイプも見る（+8）</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="model-select-row" id="modelSelectRow">
+      <div class="machine-select-label">機種名（わかれば選択）</div>
+      <select id="modelSelect">
+        <option value="">不明・その他</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="scanner" id="scanner">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <div class="placeholder" id="placeholder">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h2l1.5-2h9L18 7h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/>
+        <circle cx="12" cy="13" r="3.5"/>
+      </svg>
+      <strong>筐体の写真を準備してください</strong>
+      <span>正面から、景品とアームの両方が<br>写るように撮影してください</span>
+      <div class="placeholder-buttons">
+        <button class="btn primary" id="cameraBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h2l1.5-2h9L18 7h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          カメラで撮影する
+        </button>
+        <button class="btn" id="galleryBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M21 17l-5.5-5.5L11 16l-2.5-2.5L3 19"/></svg>
+          ギャラリーから選ぶ
+        </button>
+      </div>
+    </div>
+
+    <div class="preview-wrap" id="previewWrap">
+      <img id="previewImg" alt="アップロードされたクレーンゲームの写真">
+      <div class="reticle" id="reticle">
+        <div class="ring"></div>
+        <div class="ring delay"></div>
+        <svg viewBox="0 0 100 100">
+          <line x1="50" y1="2" x2="50" y2="34"/>
+          <line x1="50" y1="66" x2="50" y2="98"/>
+          <line x1="2" y1="50" x2="34" y2="50"/>
+          <line x1="66" y1="50" x2="98" y2="50"/>
+          <ellipse class="saucer" cx="50" cy="52" rx="30" ry="9"/>
+          <ellipse class="saucer" cx="50" cy="46" rx="15" ry="15"/>
+          <circle class="dot" cx="50" cy="50" r="3"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="scan-line" id="scanLine"></div>
+    <div class="loading-tag" id="loadingTag">ANALYZING...</div>
+
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+    <input type="file" id="galleryInput" accept="image/*" class="hidden">
+  </div>
+
+  <div class="actions hidden" id="actions">
+    <button class="btn" id="retakeBtn">別の写真を選ぶ</button>
+    <button class="btn primary" id="analyzeBtn">解析する</button>
+  </div>
+
+  <div class="result hidden" id="result"></div>
+  </div>
+
+  <div class="tab-panel hidden" id="panelContinue">
+  <span class="scope-badge">全タイプ対応 | 動画からフレームを抽出して判定</span>
+
+  <div class="toggle-group">
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-title">🎞️ 中間フレーム解析</div>
+        <div class="toggle-desc">アームが景品に触れた瞬間を追加抽出し、より多角的に分析します（精度向上）</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleMidFrame" checked>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="toggle-divider"></div>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-title">⚡ パワー推定</div>
+        <div class="toggle-desc">アームの動きから台のパワー設定を弱・中・強で推定します</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="togglePower" checked>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="scanner" id="scannerV">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <div class="placeholder" id="placeholderV">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2.5" y="5" width="14" height="14" rx="2"/>
+        <path d="M16.5 9.5l5-3v11l-5-3z"/>
+      </svg>
+      <strong>1回目のプレイ動画を準備してください</strong>
+      <span>操作前から操作後まで、景品が<br>画面に映るように撮影してください</span>
+      <div class="placeholder-buttons">
+        <button class="btn primary" id="cameraBtnV" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="14" height="14" rx="2"/><path d="M16.5 9.5l5-3v11l-5-3z"/></svg>
+          動画を撮影する
+        </button>
+        <button class="btn" id="galleryBtnV" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M21 17l-5.5-5.5L11 16l-2.5-2.5L3 19"/></svg>
+          ギャラリーから選ぶ
+        </button>
+      </div>
+    </div>
+
+    <div class="preview-wrap" id="previewWrapV">
+      <video id="previewVideo" muted playsinline controls></video>
+    </div>
+
+    <div class="loading-tag" id="loadingTagV">EXTRACTING FRAMES...</div>
+
+    <input type="file" id="cameraInputV" accept="video/*" capture="environment" class="hidden">
+    <input type="file" id="galleryInputV" accept="video/*" class="hidden">
+  </div>
+
+  <div class="actions hidden" id="actionsV">
+    <button class="btn" id="retakeBtnV">別の動画を選ぶ</button>
+    <button class="btn primary" id="analyzeBtnV">判定する</button>
+  </div>
+
+  <div class="result hidden" id="resultV"></div>
+  </div>
+
+  <footer>TSUKAMIDOKORO / CRANE GAME NEXT-MOVE ANALYZER v1</footer>
+</div>
+
+<script>
+const scanner = document.getElementById('scanner');
+const placeholder = document.getElementById('placeholder');
+const previewWrap = document.getElementById('previewWrap');
+const previewImg = document.getElementById('previewImg');
+const reticle = document.getElementById('reticle');
+const scanLine = document.getElementById('scanLine');
+const loadingTag = document.getElementById('loadingTag');
+const cameraInput = document.getElementById('cameraInput');
+const galleryInput = document.getElementById('galleryInput');
+const cameraBtn = document.getElementById('cameraBtn');
+const galleryBtn = document.getElementById('galleryBtn');
+const actions = document.getElementById('actions');
+const retakeBtn = document.getElementById('retakeBtn');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const resultEl = document.getElementById('result');
+
+const tabNext = document.getElementById('tabNext');
+const tabContinue = document.getElementById('tabContinue');
+const panelNext = document.getElementById('panelNext');
+const panelContinue = document.getElementById('panelContinue');
+
+const scannerV = document.getElementById('scannerV');
+const placeholderV = document.getElementById('placeholderV');
+const previewWrapV = document.getElementById('previewWrapV');
+const previewVideo = document.getElementById('previewVideo');
+const loadingTagV = document.getElementById('loadingTagV');
+const cameraInputV = document.getElementById('cameraInputV');
+const galleryInputV = document.getElementById('galleryInputV');
+const cameraBtnV = document.getElementById('cameraBtnV');
+const galleryBtnV = document.getElementById('galleryBtnV');
+const actionsV = document.getElementById('actionsV');
+const retakeBtnV = document.getElementById('retakeBtnV');
+const analyzeBtnV = document.getElementById('analyzeBtnV');
+const resultV = document.getElementById('resultV');
+
+tabNext.addEventListener('click', () => switchTab('next'));
+tabContinue.addEventListener('click', () => switchTab('continue'));
+
+function switchTab(name) {
+  const isNext = name === 'next';
+  tabNext.classList.toggle('active', isNext);
+  tabContinue.classList.toggle('active', !isNext);
+  panelNext.classList.toggle('hidden', !isNext);
+  panelContinue.classList.toggle('hidden', isNext);
+}
+
+let currentImage = null;
+let currentVideoFile = null;
+let selectedMachineType = '2claw';
+let selectedModel = '';
+let useMidFrame = true;
+let usePowerEstimate = true;
+let selectedAI = 'claude'; // 'claude' | 'gemini' | 'gpt'
+let userApiKey = '';
+
+// ---------- AI provider switcher ----------
+const aiButtons = document.querySelectorAll('.ai-btn');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const keyToggle = document.getElementById('keyToggle');
+const aiKeySection = document.getElementById('aiKeySection');
+const aiNote = document.getElementById('aiNote');
+const aiClaudeNote = document.getElementById('aiClaudeNote');
+
+const isClaudeArtifact = (() => {
+  try {
+    const h = window.location.hostname;
+    return h === '' || h.includes('claude') || h.includes('anthropic');
+  } catch(e) { return true; }
+})();
+
+function updateAIUI() {
+  aiButtons.forEach(btn => {
+    btn.className = 'ai-btn';
+    if (btn.dataset.ai === selectedAI) btn.classList.add(`active-${selectedAI}`);
+  });
+  if (selectedAI === 'claude' && isClaudeArtifact) {
+    aiKeySection.classList.add('hidden');
+    aiClaudeNote.classList.remove('hidden');
+  } else {
+    aiKeySection.classList.remove('hidden');
+    aiClaudeNote.classList.add('hidden');
+    const hints = {
+      claude: 'Claude APIキー（sk-ant-…）: console.anthropic.com で取得',
+      gemini: 'Gemini APIキー（AIza…）: aistudio.google.com で取得',
+      gpt: 'OpenAI APIキー（sk-…）: platform.openai.com で取得'
+    };
+    aiNote.textContent = hints[selectedAI] || '';
+  }
+}
+
+aiButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    selectedAI = btn.dataset.ai;
+    userApiKey = '';
+    apiKeyInput.value = '';
+    updateAIUI();
+  });
+});
+apiKeyInput.addEventListener('input', () => { userApiKey = apiKeyInput.value.trim(); });
+keyToggle.addEventListener('click', () => {
+  const show = apiKeyInput.type === 'password';
+  apiKeyInput.type = show ? 'text' : 'password';
+  keyToggle.textContent = show ? '🙈' : '👁';
+});
+updateAIUI();
+
+document.getElementById('toggleMidFrame').addEventListener('change', e => { useMidFrame = e.target.checked; });
+document.getElementById('togglePower').addEventListener('change', e => { usePowerEstimate = e.target.checked; });
+
+// ---------- Machine type data ----------
+const MACHINE_TYPES = {
+  '2claw': {
+    label: '2本爪アームタイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+      // SEGA UFOキャッチャーシリーズ
+      { value: 'ufo10', label: 'UFO CATCHER 10（SEGA / 2023〜）' },
+      { value: 'ufo9third', label: 'UFO CATCHER 9 third（SEGA）' },
+      { value: 'ufo9ex', label: 'UFO CATCHER 9 EX（SEGA）' },
+      { value: 'ufo9', label: 'UFO CATCHER 9（SEGA）' },
+      { value: 'ufo7', label: 'UFOキャッチャー7（SEGA）' },
+      { value: 'ufo21', label: 'UFOキャッチャー21（SEGA）' },
+      // バンダイナムコ クレナシリーズ
+      { value: 'clena3', label: 'クレナ3（バンダイナムコ / 2022〜）' },
+      { value: 'clena_hybrid', label: 'クレナハイブリッド（バンダイナムコ）' },
+      { value: 'clena2k', label: 'クレナ2K（バンダイナムコ）' },
+      { value: 'clena2q', label: 'クレナ2クイーン（バンダイナムコ）' },
+      { value: 'clenaflex', label: 'クレナフレックス（バンダイナムコ / 初代）' },
+      { value: 'bigrena', label: 'ビックレナ（バンダイナムコ / 大型）' },
+      { value: 'clenawide', label: 'クレナワイド（バンダイナムコ）' },
+      // TAITO
+      { value: 'capriccio', label: 'カプリチオ（TAITO）' },
+      { value: 'capriccio_sr', label: 'カプリチオサイクロンSR（TAITO）' },
+    ],
+    prompt_hint: `これは2本爪アームタイプのクレーンゲームです。アームが2本の爪で景品を掴む仕組みです。\n爪の開き幅・下降速度・アームのパワー設定が獲得率に大きく影響します。\n【汎用テクニック】\n・後ろ掛け：景品の重心より少し後方を狙い、爪が引っかかりやすい角度を作る\n・端っこ狙い：景品の角や端に爪を引っかけて少しずつ移動させる\n・橋渡し設定の場合：棒の手前側を狙い、景品を手前に引き寄せる\n・フリーホール設定（クレナ系）：落とし口の位置・形を把握して最短ルートを逆算する\n・アシストランプが光っている台は通常よりパワーが上がるチャンス`
+  },
+  'push': {
+    label: '横アーム（サイドアーム）押し出しタイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'prizecircus', label: 'プライズサーカス（SEGA）' },
+      { value: 'prizecircus2', label: 'プライズサーカス2（SEGA）' },
+      { value: 'sidearm_std', label: '横アーム標準機（メーカー不明）' },
+    ],
+    prompt_hint: `これは横アーム（サイドアーム）で景品を横から押し出すタイプのクレーンゲームです。アームが横方向に動いて景品を台の端から落とす仕組みです。\n【攻略のポイント】\n・アームの高さと景品の接触面を合わせることが最重要\n・複数回に分けて少しずつ端へ寄せる「少し押し戦略」が有効\n・台の端との距離を目測して、1回で落とせるかどうかを判断する\n・景品が台の枠に引っかかりやすい形状（丸いぬいぐるみなど）は、アームの高さを少し上げて転がすように押す`
+  },
+  'drop': {
+    label: '落とし穴・リングタイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'catchring', label: 'キャッチリング（SEGA）' },
+      { value: 'drop_std', label: '落とし穴標準機' },
+      { value: 'ring_ex', label: 'リングアーム機' },
+    ],
+    prompt_hint: `これは落とし穴またはリングを使って景品を落とすタイプのクレーンゲームです。\n穴の上に景品を誘導して落とすか、リングに景品を引っかけて移動させる仕組みです。\n【攻略のポイント】\n・景品の向きと穴の形・サイズを最初に確認する\n・景品の重心を穴の真上に合わせることが最優先\n・滑りやすい景品か確認（フィギュア・アクリルスタンドは滑りやすい、ぬいぐるみは引っかかりやすい）\n・穴の位置が固定かフリーホールか（クレナ系）を確認してから狙う位置を決める`
+  },
+  'crane3': {
+    label: '3本爪アームタイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'ufo_triple', label: 'UFO CATCHER TRIPLE（SEGA × TAITO）' },
+      { value: 'clena_hybrid3', label: 'クレナハイブリッド（3爪モード）（バンダイナムコ）' },
+      { value: 'tri_std', label: '3本爪標準機（メーカー不明）' },
+    ],
+    prompt_hint: `これは3本爪アームタイプのクレーンゲームです。3本の爪が景品を包むように掴む仕組みです。\n2本爪と比べて景品を真上から安定して持ち上げられますが、アームパワーが弱い台では重い景品は持ち上がりません。\n【攻略のポイント】\n・景品の重心の真上を狙うことが最重要（3爪は中心を合わせる設計）\n・景品が円形・球形のもの（大きいぬいぐるみなど）は3爪が最も相性が良い\n・アームのパワー設定を確認する（低パワー設定では大型景品は無理）\n・UFO CATCHER TRIPLEはTAITOのオンクレでも広く使われている機種`
+  },
+  'rubber_shovel': {
+    label: 'ラバーシャベル（ゴム爪）設定',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'rabasha_ufo9', label: 'ラバシャ設定 / UFO CATCHER 9（SEGA）' },
+      { value: 'rabasha_ufo10', label: 'ラバシャ設定 / UFO CATCHER 10（SEGA）' },
+      { value: 'rabasha_clena3', label: 'ラバシャ設定 / クレナ3（バンダイナムコ）' },
+      { value: 'rabasha_r1', label: 'ラバシャ設定 / ラウンドワン全般' },
+      { value: 'rabasha_std', label: 'ラバシャ設定（機種不明）' },
+    ],
+    prompt_hint: `これは爪先がゴム製の「ラバーシャベル（ラバシャ）」タイプのクレーンゲームです。通常の金属爪と比べてゴムの摩擦力で景品を掴みやすく、フィギュアや箱物に多く使われます。ラウンドワンで特によく見られる設定です。\n景品の周囲に透明のシールド（壁）が設置されているタイプも多く、その場合はシールドを越えて景品を取り出す必要があります。\n【攻略のポイント】\n・基本戦術は「景品をシールドの端ギリギリまで寄せて、シールド外でアームが掴める形を作る」\n・シールドがある場合：景品を斜めに傾けてシールドに乗せ、そこから手前へ落とす「シールド乗せ」が有効\n・パワーが強い台では景品を横から挟み込んで一気に持ち上げる「横掴み」も可能\n・パワーが弱い台：重心側を手前にして徐々に滑らせる「ずらし戦術」が有効\n・ゴム爪は摩擦が強いため、景品を掴んで少し持ち上げてズラすだけでも動く\n・シールドの高さとアームの上昇限界を画像から確認して、「持ち上げてシールドを越えられるか」を最初に判断することが重要`
+  },
+  'push_box': {
+    label: '箱・台押し出しタイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'bumper_std', label: 'バンパーキャッチャー標準機' },
+      { value: 'stage_push', label: 'ステージプッシュ標準機' },
+      { value: 'box_ex', label: 'ボックスプッシャー系' },
+    ],
+    prompt_hint: `これは箱や台をアームで押し出して景品を落とすタイプのクレーンゲームです。\n【攻略のポイント】\n・どの向き・角度で台を押すと景品が落とし口に向かうかを最初に見極める\n・箱の動きの連鎖（ドミノ式）を読んで複数個まとめて狙える配置を探す\n・台の摩擦・傾き・景品の重さによって力加減が変わることを意識する\n・一度の操作で大きく動かすより、少しずつ押して方向を調整する「微調整戦術」が有効`
+  },
+  'bridge': {
+    label: '橋渡し設定（棒・板渡し）',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'bridge_ufo9', label: '橋渡し設定 / UFO CATCHER 9（SEGA）' },
+      { value: 'bridge_clena3', label: '橋渡し設定 / クレナ3（バンダイナムコ）' },
+      { value: 'bridge_std', label: '橋渡し設定（機種不明）' },
+    ],
+    prompt_hint: `これは2本の棒や板の上に景品を渡して置く「橋渡し設定」です。2本爪アーム機で最もよく見られる設定の一つです。\n【攻略のポイント】\n・「手前棒を狙って景品を手前に引き寄せる」のが基本戦術\n・景品を少しずつ手前棒の外側にはみ出させ、最終的に落とし口へ落とす\n・横移動で景品をずらして棒の間隔を広げさせる「棒ずらし」も有効\n・景品の重心位置によって崩れる方向が変わるので、最初に向きと重心を確認する\n・2本の棒の間隔が広いほど景品が安定しているため、まず隙間を作るアプローチを取る`
+  },
+  'valley': {
+    label: '谷落とし設定',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'valley_ufo', label: '谷落とし設定 / UFO CATCHER系（SEGA）' },
+      { value: 'valley_clena', label: '谷落とし設定 / クレナ系（バンダイナムコ）' },
+      { value: 'valley_std', label: '谷落とし設定（機種不明）' },
+    ],
+    prompt_hint: `これは前後にある滑り止めのない斜面を「谷」に見立て、中央の隙間に景品を落とす「谷落とし設定」です。橋渡しと似ていますが、棒ではなく斜面全体に景品が乗っているため、橋渡しより自由に動かせる反面、意図しない形でハマりやすい特徴があります。\n【攻略のポイント】\n・橋渡しと同様、初手は縦横中央付近を狙い、上に浮いた景品の角を交互に狙う「縦ハメ」が基本\n・景品の重心の把握が橋渡しよりもさらに重要（斜面なので重心側に転がりやすい）\n・景品を完全に片側の斜面に乗せてしまい、最後に押して谷底へ落とす取り方も有効\n・谷の板に滑り止めが効いているかどうかで難易度が大きく変わるため、画像から滑り止めの有無を確認する\n・谷以外に落とす場所がないため、最終的には必ず中央の谷を狙う`
+  },
+  'platform': {
+    label: '台乗せ・棒乗せ（一本橋・台）',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'platform_ufo', label: '台乗せ設定 / UFO CATCHER系' },
+      { value: 'platform_clena', label: '台乗せ設定 / クレナ系' },
+      { value: 'ipponnhashi', label: '一本橋設定（機種不明）' },
+    ],
+    prompt_hint: `これは景品が台や一本の棒の上に乗っている「台乗せ・棒乗せ設定」です。\n【攻略のポイント】\n・景品の重心がどちら側に偏っているかを最初に観察する\n・重心がある方向へアームで押して、台から落とす\n・一本橋設定の場合は、橋の端ギリギリに景品を追い込んでから重心側を狙う\n・景品を真横から押すと台の端で引っかかりやすいため、斜め方向から狙う`
+  },
+  'hook_ring': {
+    label: 'フック・リング引っ掛け式',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'hook_std', label: 'フック引っ掛け標準機' },
+      { value: 'ring_capsule', label: 'リング×カプセル機（鍵付き景品）' },
+      { value: 'hook_ex', label: 'フックEX系' },
+    ],
+    prompt_hint: `これは景品やカプセルに付いたリング（輪っか）に、アーム先端のフックを引っ掛けて持ち上げるタイプのクレーンゲームです。\nフックの向き・角度とリングの位置を正確に合わせる必要があり、難易度が高めの仕掛けです。\n【攻略のポイント】\n・フックとリングの向きが一致する角度を画像から見極める（フックが斜めだとリングに入らない）\n・坂道や可動域制限がある台は、リングの位置をアームの可動範囲内に収める\n・カプセル内に鍵が入っているタイプは、まずカプセルの引っ掛けやすい向きを確認する\n・店舗によってフックの可動域やリングのサイズ調整があるため、画像から引っ掛けやすさを慎重に判断する`
+  },
+  'recoil': {
+    label: '反動台',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'recoil_std', label: '反動台標準機' },
+      { value: 'recoil_heavy', label: '反動台（重量景品向け）' },
+    ],
+    prompt_hint: `これは「反動台」と呼ばれる仕掛けです。景品をアームで持ち上げて動かした際の反動を利用して、景品を少しずつ落下口へ導く仕組みです。景品は重いものが多く、ただ持ち上げるだけでは元の位置に戻ってしまいます。\n【攻略のポイント】\n・景品の片側をアームで引っ掛けて少しずつ動かす「コツコツ戦術」が基本\n・持ち上げた際の反動で景品がどちらに振れるかを画像から予測する\n・重心が落下口に近い側にあるかを確認し、近い場合は反動を使って一気に寄せる\n・一度に大きく動かそうとせず、複数回に分けて景品の向きと位置を調整する`
+  },
+  'needle': {
+    label: '剣山・ピン刺しタイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'needle_sega', label: '剣山タイプ（SEGA系）' },
+      { value: 'needle_std', label: '剣山・ピン刺し標準機' },
+    ],
+    prompt_hint: `これは剣山のような無数の針・ピンの上にフィギュアなどの景品が乗せられているタイプのクレーンゲームです。アームで持ち上げて針から景品を外し、落下口まで運ぶ仕組みです。\n【攻略のポイント】\n・景品が針のどの位置に刺さっているかを正確に確認する（複数の針に刺さっている場合は外れにくい）\n・景品を斜め方向に持ち上げると針から外れやすくなることが多い\n・コツを掴むと数回で取れるが、誤った方向に動かすと何度も行ったり来たりしてハマりやすい\n・針が景品の重心からずれた位置にある場合、その逆方向に傾けて外す戦術が有効`
+  },
+  'ball': {
+    label: 'ボール転がしタイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'ball_std', label: 'ボール転がし標準機' },
+      { value: 'ball_capsule', label: 'カプセルボール機' },
+    ],
+    prompt_hint: `これは景品が入ったボール（カプセル含む）を転がして落下口まで運ぶタイプのクレーンゲームです。2本のレールや棒の間隔が広い方へボールを転がしていく仕組みが代表的です。\n【攻略のポイント】\n・アームの片方の爪でボールを棒の間隔が広い方向へ転がす\n・ボールが動かなくなる位置まで転がしたら、爪でボールを軽く突いて落とす\n・ボールの現在位置と落下口までの最短ルートを画像から逆算する\n・転がりすぎると逆側の壁にぶつかって戻ってしまうため、力加減を抑えた微調整が重要`
+  },
+  'capsule': {
+    label: 'カプセル取りタイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+      { value: 'capsule_key', label: '鍵付きカプセル機（バンビーノ系）' },
+      { value: 'capsule_std', label: 'カプセル取り標準機' },
+    ],
+    prompt_hint: `これは景品（鍵や小型アイテムなど）が入ったカプセルをアームで取るタイプのクレーンゲームです。カプセルを獲得すると中に入った鍵で別の豪華景品と交換できるタイプもあります。\n【攻略のポイント】\n・カプセルは丸くて滑りやすいため、爪の引っかけ方向を慎重に見極める\n・カプセルが密集している場合は、隙間を作ってから1つを動かす戦術が有効\n・落下口に近いカプセルから優先的に狙う\n・台によってはクレーンの座標を事前にずらせる仕様もあるため、画像内のレバーやボタン位置も確認する`
+  },
+  'other': {
+    label: '特殊・不明タイプ',
+    models: [
+      { value: '', label: '不明・その他' },
+    ],
+    prompt_hint: `このクレーンゲームのタイプは不明または特殊なタイプです。画像を見てタイプを自動判別してください。設定・仕組みをできる限り画像から読み取り、それに合わせたアドバイスをしてください。`
+  }
+};
+
+function updateModelSelect(type) {
+  const modelSelect = document.getElementById('modelSelect');
+  const models = (MACHINE_TYPES[type] || MACHINE_TYPES['other']).models;
+  modelSelect.innerHTML = models.map(m =>
+    `<option value="${m.value}">${m.label}</option>`
+  ).join('');
+  selectedModel = '';
+}
+
+// Wire machine card clicks
+document.querySelectorAll('.machine-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.machine-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedMachineType = card.dataset.type;
+    updateModelSelect(selectedMachineType);
+  });
+});
+
+document.getElementById('modelSelect').addEventListener('change', (e) => {
+  selectedModel = e.target.value;
+});
+
+// Show more / fewer types toggle
+const showMoreBtn = document.getElementById('showMoreBtn');
+const showMoreLabel = document.getElementById('showMoreLabel');
+const machineGrid = document.querySelector('.machine-grid');
+showMoreBtn.addEventListener('click', () => {
+  const isExpanded = machineGrid.classList.toggle('expanded');
+  showMoreBtn.classList.toggle('expanded', isExpanded);
+  showMoreLabel.textContent = isExpanded ? '表示を減らす' : '他のタイプも見る（+8）';
+});
+
+// Initialize model select
+updateModelSelect('2claw');
+
+cameraBtn.addEventListener('click', () => cameraInput.click());
+galleryBtn.addEventListener('click', () => galleryInput.click());
+
+cameraInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+galleryInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+async function handleFile(file) {
+  if (!file) return;
+
+  const dataUrl = await readFileAsDataURL(file);
+  const resized = await resizeImage(dataUrl, 1024);
+
+  previewImg.src = resized;
+  placeholder.style.display = 'none';
+  previewWrap.style.display = 'block';
+  reticle.style.display = 'none';
+  scanner.classList.add('has-image');
+
+  actions.classList.remove('hidden');
+  resultEl.classList.add('hidden');
+  resultEl.innerHTML = '';
+
+  const [meta, base64] = resized.split(',');
+  const mediaType = meta.match(/data:(.*?);base64/)[1];
+  currentImage = { base64, mediaType };
+}
+
+retakeBtn.addEventListener('click', () => {
+  cameraInput.value = '';
+  galleryInput.value = '';
+  placeholder.style.display = 'flex';
+  previewWrap.style.display = 'none';
+  scanner.classList.remove('has-image');
+  actions.classList.add('hidden');
+  resultEl.classList.add('hidden');
+  resultEl.innerHTML = '';
+  currentImage = null;
+});
+
+analyzeBtn.addEventListener('click', async () => {
+  if (!currentImage) return;
+
+  analyzeBtn.disabled = true;
+  retakeBtn.disabled = true;
+  analyzeBtn.textContent = '解析中...';
+  scanLine.style.display = 'block';
+  loadingTag.style.display = 'block';
+  reticle.style.display = 'none';
+  resultEl.classList.add('hidden');
+  resultEl.innerHTML = '';
+
+  try {
+    const data = await analyzeImage(currentImage.base64, currentImage.mediaType);
+    renderResult(data);
+  } catch (err) {
+    renderError(err);
+  } finally {
+    analyzeBtn.disabled = false;
+    retakeBtn.disabled = false;
+    analyzeBtn.textContent = '解析する';
+    scanLine.style.display = 'none';
+    loadingTag.style.display = 'none';
+  }
+});
+
+cameraBtnV.addEventListener('click', () => cameraInputV.click());
+galleryBtnV.addEventListener('click', () => galleryInputV.click());
+
+cameraInputV.addEventListener('change', (e) => handleVideoFile(e.target.files[0]));
+galleryInputV.addEventListener('change', (e) => handleVideoFile(e.target.files[0]));
+
+function handleVideoFile(file) {
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  previewVideo.src = url;
+  placeholderV.style.display = 'none';
+  previewWrapV.style.display = 'block';
+  scannerV.classList.add('has-image');
+
+  actionsV.classList.remove('hidden');
+  resultV.classList.add('hidden');
+  resultV.innerHTML = '';
+
+  currentVideoFile = file;
+}
+
+retakeBtnV.addEventListener('click', () => {
+  cameraInputV.value = '';
+  galleryInputV.value = '';
+  previewVideo.pause();
+  previewVideo.removeAttribute('src');
+  previewVideo.load();
+  placeholderV.style.display = 'flex';
+  previewWrapV.style.display = 'none';
+  scannerV.classList.remove('has-image');
+  actionsV.classList.add('hidden');
+  resultV.classList.add('hidden');
+  resultV.innerHTML = '';
+  currentVideoFile = null;
+});
+
+analyzeBtnV.addEventListener('click', async () => {
+  if (!currentVideoFile) return;
+
+  analyzeBtnV.disabled = true;
+  retakeBtnV.disabled = true;
+  analyzeBtnV.textContent = '解析中...';
+  loadingTagV.style.display = 'block';
+  resultV.classList.add('hidden');
+  resultV.innerHTML = '';
+
+  try {
+    loadingTagV.textContent = 'EXTRACTING FRAMES...';
+    const frames = await extractFrames(currentVideoFile);
+    const beforeFrame = await resizeImage(frames.first, 960);
+    const midFrame = useMidFrame && frames.mid ? await resizeImage(frames.mid, 960) : null;
+    const afterFrame = await resizeImage(frames.last, 960);
+
+    loadingTagV.textContent = 'ANALYZING...';
+    const data = await analyzeContinue(beforeFrame, midFrame, afterFrame);
+    renderContinueResult(data, beforeFrame, midFrame, afterFrame);
+  } catch (err) {
+    renderErrorV(err);
+  } finally {
+    analyzeBtnV.disabled = false;
+    retakeBtnV.disabled = false;
+    analyzeBtnV.textContent = '判定する';
+    loadingTagV.style.display = 'none';
+  }
+});
+
+function extractFrames(file) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    const url = URL.createObjectURL(file);
+    video.src = url;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const capture = () => {
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', 0.85);
+    };
+
+    const seekTo = (t) => new Promise((res) => {
+      const onSeeked = () => {
+        video.removeEventListener('seeked', onSeeked);
+        requestAnimationFrame(() => requestAnimationFrame(res));
+      };
+      video.addEventListener('seeked', onSeeked);
+      video.currentTime = Math.max(0, t);
+    });
+
+    video.addEventListener('error', () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('動画を読み込めませんでした'));
+    });
+
+    video.addEventListener('loadedmetadata', async () => {
+      try {
+        const d = video.duration || 1;
+        // Frame 1: very start (before arm descends)
+        await seekTo(Math.min(0.1, d * 0.05));
+        const first = capture();
+        // Frame 2: middle of play (arm contact / grab moment)
+        await seekTo(d * 0.45);
+        const mid = capture();
+        // Frame 3: near end (arm returned, prize settled)
+        await seekTo(Math.max(d - 0.2, d * 0.88));
+        const last = capture();
+        URL.revokeObjectURL(url);
+        resolve({ first, mid, last, duration: d });
+      } catch (e) {
+        URL.revokeObjectURL(url);
+        reject(e);
+      }
+    });
+
+    video.load();
+  });
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function resizeImage(dataUrl, maxDim) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round(height * (maxDim / width));
+          width = maxDim;
+        } else {
+          width = Math.round(width * (maxDim / height));
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.src = dataUrl;
+  });
+}
+
+function buildPrompt(type, modelVal) {
+  const machineInfo = MACHINE_TYPES[type] || MACHINE_TYPES['other'];
+  const modelNames = machineInfo.models;
+  const modelEntry = modelNames.find(m => m.value === modelVal);
+  const modelLabel = modelEntry && modelEntry.value ? modelEntry.label : null;
+  const modelLine = modelLabel ? `\n機種：${modelLabel}` : '';
+
+  return `あなたはUFOキャッチャー（クレーンゲーム）の上級者です。
+筐体タイプ：${machineInfo.label}${modelLine}
+
+${machineInfo.prompt_hint}
+
+${modelLabel ? `【${modelLabel}の特有の攻略情報】\nこの機種の特徴・癖・よく知られたテクニックがあれば積極的に言及してください。` : ''}
+
+添付された画像は、上記タイプのクレーンゲームをプレイヤーがスマートフォンで撮影したものです。
+画像を分析し、次にプレイヤーが取るべき最善の操作について、以下のJSON形式のみで出力してください。
+前置き、説明文、マークダウンの\`\`\`は一切不要です。JSONオブジェクトのみを出力してください。
+
+{
+  "detected_type": "画像から判断した筐体タイプの説明（指定タイプと一致していればそのまま、異なれば正しいタイプを記載）",
+  "target_name": "狙うべき景品を簡潔に説明する文（例: 中央手前のクマのぬいぐるみ）",
+  "target_position": {"x": 画像内での横位置(0-100の数値, 左端0・右端100), "y": 画像内での縦位置(0-100の数値, 上端0・下端100)},
+  "confidence": "high または medium または low のいずれか（成功見込みの目安）",
+  "arm_position_advice": "このタイプの台に合わせた、アームや押し出し機構を動かすべき位置・方向についての具体的なアドバイス",
+  "power_advice": "このタイプの台のパワー設定や機構の強さに関するアドバイス。画像内に表示があれば言及し、なければ一般的な目安を説明する文",
+  "timing_advice": "操作のタイミングや手順に関するアドバイス（ボタンを押すタイミング、操作の順序など）",
+  "strategy_advice": "このタイプ・機種特有の戦略ポイントや上級テクニックを含む総合的なアドバイス",
+  "risk_note": "注意点、外れた場合のリスク、次回への布石となる動きなどを説明する文"
+}
+
+画像がクレーンゲームの写真として不明瞭、または判断できない場合は、target_nameに「画像からゲーム機の状態を確認できませんでした」と記載してください。
+各項目の文章は40〜100文字程度の自然な日本語にしてください。`;
+}
+
+// ---- shared: call the active AI with image(s) ----
+function requireKey() {
+  if (selectedAI !== 'claude' || !isClaudeArtifact) {
+    if (!userApiKey) throw new Error('APIキーを入力してください。');
+  }
+}
+
+function parseAIResponse(data, ai) {
+  let text = '';
+  if (ai === 'claude') {
+    text = (data.content || []).map(b => b.type === 'text' ? b.text : '').join('');
+  } else if (ai === 'gemini') {
+    text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  } else if (ai === 'gpt') {
+    text = data.choices?.[0]?.message?.content || '';
+  }
+  if (!text) throw new Error('AIからの応答が空でした');
+  const cleaned = text.replace(/^```json\s*|^```\s*|```$/gm, '').trim();
+  try { return JSON.parse(cleaned); }
+  catch(e) { throw new Error('解析結果の読み取りに失敗しました'); }
+}
+
+async function callAI(imagesWithLabels, promptText) {
+  requireKey();
+
+  if (selectedAI === 'claude') {
+    const content = [];
+    for (const { base64, mediaType, label } of imagesWithLabels) {
+      if (label) content.push({ type: 'text', text: label });
+      content.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } });
+    }
+    content.push({ type: 'text', text: promptText });
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (userApiKey) headers['x-api-key'] = userApiKey;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1200, messages: [{ role: 'user', content }] })
+    });
+    if (!res.ok) throw new Error('Claude API エラー (status: ' + res.status + ')');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return parseAIResponse(data, 'claude');
+  }
+
+  if (selectedAI === 'gemini') {
+    const parts = [];
+    for (const { base64, mediaType, label } of imagesWithLabels) {
+      if (label) parts.push({ text: label });
+      parts.push({ inline_data: { mime_type: mediaType, data: base64 } });
+    }
+    parts.push({ text: promptText });
+
+    const model = 'gemini-2.0-flash';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${userApiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts }] })
+    });
+    if (!res.ok) throw new Error('Gemini API エラー (status: ' + res.status + ')');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return parseAIResponse(data, 'gemini');
+  }
+
+  if (selectedAI === 'gpt') {
+    const content = [];
+    for (const { base64, mediaType, label } of imagesWithLabels) {
+      if (label) content.push({ type: 'text', text: label });
+      content.push({ type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}`, detail: 'high' } });
+    }
+    content.push({ type: 'text', text: promptText });
+
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userApiKey}` },
+      body: JSON.stringify({ model: 'gpt-4o', max_tokens: 1200, messages: [{ role: 'user', content }] })
+    });
+    if (!res.ok) throw new Error('OpenAI API エラー (status: ' + res.status + ')');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return parseAIResponse(data, 'gpt');
+  }
+
+  throw new Error('未対応のAIプロバイダーです');
+}
+
+async function analyzeImage(base64, mediaType) {
+  const prompt = buildPrompt(selectedMachineType, selectedModel);
+  return callAI([{ base64, mediaType, label: '' }], prompt);
+}
+
+function buildContinuePrompt(type, modelVal, hasMidFrame, hasPower) {
+  const machineInfo = MACHINE_TYPES[type] || MACHINE_TYPES['other'];
+  const modelNames = machineInfo.models;
+  const modelEntry = modelNames.find(m => m.value === modelVal);
+  const modelLabel = modelEntry && modelEntry.value ? modelEntry.label : null;
+  const modelLine = modelLabel ? `\n機種：${modelLabel}` : '';
+
+  const frameDesc = hasMidFrame
+    ? `添付された3枚の画像は、同じクレーンゲームの1プレイを動画から切り出したものです。\n【1枚目】操作前（プレイ開始直後）\n【2枚目】操作中（アームが景品に接触・掴もうとした瞬間付近）\n【3枚目】操作後（アームが戻った後の景品の最終状態）`
+    : `添付された2枚の画像は、同じクレーンゲームの1プレイを動画から切り出したものです。\n【1枚目】操作前（プレイ開始直後）\n【2枚目】操作後（アームが戻った後の景品の最終状態）`;
+
+  const powerField = hasPower ? `
+  "estimated_power": "弱・中・強のいずれかでアームのパワーを推定してください。推定根拠（景品がどれだけ動いたか・アームがどれだけ持ち上げようとしたか）も含めて説明する文",
+  "power_level": "weak または medium または strong のいずれか",` : '';
+
+  const midFrameHint = hasMidFrame ? `
+- 2枚目（操作中フレーム）からアームが景品に触れた際の反応・動き・どれくらい持ち上がろうとしたかを読み取ってください` : '';
+
+  return `あなたはUFOキャッチャー（クレーンゲーム）の上級者です。
+筐体タイプ：${machineInfo.label}${modelLine}
+
+${machineInfo.prompt_hint}
+
+${frameDesc}
+
+このタイプの台の特性を踏まえ、フレームを比較して景品の位置・向き・安定感の変化を分析し、続行する価値があるかを判断してください。
+以下のJSON形式のみを出力してください。前置き・説明文・マークダウンの\`\`\`は一切不要です。JSONオブジェクトのみを出力してください。
+
+{${powerField}
+  "movement_summary": "景品または台がどのように動いた・変化したかを${machineInfo.label}の観点から説明する文",
+  "progress_level": "good または slight または none または worse のいずれか",
+  "win_probability": "high または medium または low のいずれか",
+  "recommendation": "continue または stop または retry_shot のいずれか",
+  "recommendation_reason": "recommendationを選んだ理由を、このタイプの台の特性を踏まえて説明する文",
+  "next_action_advice": "続行する場合の次の操作のポイント、またはやめる場合の代替案",
+  "budget_advice": "あと何回くらいが目安か、見切りのタイミングなどのコスト面アドバイス"
+}
+
+分析のポイント：${midFrameHint}
+- 景品が落とし口に大きく近づいた・不安定になった → progress_level="good"
+- わずかに動いた → "slight" / ほぼ変化なし → "none" / 悪化 → "worse"
+- progress_level="good" かつ獲得圏内 → win_probability="high", recommendation="continue"
+- "none"/"worse" が続く → win_probability="low", recommendation="stop" 検討
+
+各項目40〜100文字程度の自然な日本語にしてください。`;
+}
+
+async function analyzeContinue(beforeDataUrl, midDataUrl, afterDataUrl) {
+  const hasMidFrame = !!midDataUrl;
+  const hasPower = usePowerEstimate;
+  const prompt = buildContinuePrompt(selectedMachineType, selectedModel, hasMidFrame, hasPower);
+
+  const toEntry = (dataUrl, label) => {
+    const [meta, base64] = dataUrl.split(',');
+    const mediaType = meta.match(/data:(.*?);base64/)[1];
+    return { base64, mediaType, label };
+  };
+
+  const images = [
+    toEntry(beforeDataUrl, '【操作前フレーム】'),
+    ...(hasMidFrame ? [toEntry(midDataUrl, '【操作中フレーム（アーム接触付近）】')] : []),
+    toEntry(afterDataUrl, '【操作後フレーム】')
+  ];
+
+  return callAI(images, prompt);
+}
+
+function confidenceLabel(level) {
+  switch (level) {
+    case 'high': return { text: '高', cls: 'high' };
+    case 'medium': return { text: '中', cls: 'medium' };
+    case 'low': return { text: '低', cls: 'low' };
+    default: return { text: '—', cls: 'medium' };
+  }
+}
+
+function renderResult(data) {
+  const conf = confidenceLabel(data.confidence);
+
+  // place reticle
+  const x = clampNum(data.target_position && data.target_position.x, 50);
+  const y = clampNum(data.target_position && data.target_position.y, 50);
+  reticle.style.left = x + '%';
+  reticle.style.top = y + '%';
+  reticle.style.display = 'block';
+
+  const machineInfo = MACHINE_TYPES[selectedMachineType] || MACHINE_TYPES['other'];
+
+  const cards = [
+    { title: 'アーム / 機構の位置', text: data.arm_position_advice },
+    { title: 'パワー設定', text: data.power_advice },
+    { title: 'タイミング・手順', text: data.timing_advice },
+    { title: '戦略・テクニック', text: data.strategy_advice },
+    { title: '注意点', text: data.risk_note }
+  ];
+
+  const detectedLine = data.detected_type
+    ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">🔍 ${escapeHtml(data.detected_type)}</div>` : '';
+
+  let html = `
+    <div class="summary">
+      <div>
+        <div class="label">target</div>
+        <div class="target-name">${escapeHtml(data.target_name || '—')}</div>
+        ${detectedLine}
+      </div>
+      <div class="confidence ${conf.cls}">
+        <span class="num">${conf.text}</span>
+        成功見込み
+      </div>
+    </div>
+  `;
+
+  cards.forEach((c, i) => {
+    if (!c.text) return;
+    html += `
+      <div class="advice-card">
+        <div class="num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="body">
+          <h3>${escapeHtml(c.title)}</h3>
+          <p>${escapeHtml(c.text)}</p>
+        </div>
+      </div>
+    `;
+  });
+
+  const aiLabel = { claude: 'Claude', gemini: 'Gemini', gpt: 'ChatGPT' }[selectedAI] || selectedAI;
+  html += `<p class="disclaimer">※ ${aiLabel}による画像分析と${escapeHtml(machineInfo.label)}の攻略情報に基づく参考情報です。実際の獲得難易度は機械の設定や状態により異なります。</p>`;
+
+  resultEl.innerHTML = html;
+  resultEl.classList.remove('hidden');
+}
+
+function renderError(err) {
+  resultEl.innerHTML = `
+    <div class="error-box">
+      解析中にエラーが発生しました。${escapeHtml(err.message || '')}<br>
+      もう一度「解析する」を押してお試しください。
+    </div>
+  `;
+  resultEl.classList.remove('hidden');
+}
+
+function progressLabel(level) {
+  switch (level) {
+    case 'good': return { text: '好転', cls: 'high' };
+    case 'slight': return { text: 'わずかに変化', cls: 'medium' };
+    case 'none': return { text: '変化なし', cls: 'medium' };
+    case 'worse': return { text: '悪化', cls: 'low' };
+    default: return { text: '—', cls: 'medium' };
+  }
+}
+
+function recommendationInfo(rec) {
+  switch (rec) {
+    case 'continue':
+      return {
+        cls: 'continue',
+        title: '続行する',
+        icon: '<path d="M5 12l5 5L20 7"/>'
+      };
+    case 'stop':
+      return {
+        cls: 'stop',
+        title: 'ここでやめる',
+        icon: '<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>'
+      };
+    default:
+      return {
+        cls: 'retry',
+        title: 'もう一度様子を見る',
+        icon: '<path d="M3 12a9 9 0 1 0 2.6-6.4M3 4v5h5"/>'
+      };
+  }
+}
+
+function powerLabel(level) {
+  switch (level) {
+    case 'strong': return { text: '強', cls: 'high', icon: '⚡⚡⚡' };
+    case 'medium': return { text: '中', cls: 'medium', icon: '⚡⚡' };
+    case 'weak':   return { text: '弱', cls: 'low',    icon: '⚡' };
+    default:       return null;
+  }
+}
+
+function renderContinueResult(data, beforeFrame, midFrame, afterFrame) {
+  const win  = confidenceLabel(data.win_probability);
+  const prog = progressLabel(data.progress_level);
+  const rec  = recommendationInfo(data.recommendation);
+  const pwr  = data.power_level ? powerLabel(data.power_level) : null;
+
+  // ---- frame strip ----
+  let frameHtml = `<div class="frame-compare">`;
+  frameHtml += `
+    <div class="frame-box">
+      <img src="${beforeFrame}" alt="操作前">
+      <span class="frame-label">操作前</span>
+    </div>`;
+
+  if (midFrame) {
+    frameHtml += `
+    <svg class="frame-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <div class="frame-box">
+      <img src="${midFrame}" alt="操作中（アーム接触）">
+      <span class="frame-label" style="color:var(--amber)">操作中</span>
+    </div>`;
+  }
+
+  frameHtml += `
+    <svg class="frame-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <div class="frame-box">
+      <img src="${afterFrame}" alt="操作後">
+      <span class="frame-label">操作後</span>
+    </div>
+  </div>`;
+
+  // ---- recommendation banner ----
+  const recHtml = `
+    <div class="rec-banner ${rec.cls}">
+      <div class="rec-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${rec.icon}</svg>
+      </div>
+      <div>
+        <div class="rec-title">${escapeHtml(rec.title)}</div>
+        <div class="rec-reason">${escapeHtml(data.recommendation_reason || '')}</div>
+      </div>
+    </div>`;
+
+  // ---- badges ----
+  let badgesHtml = `<div class="badges-row">
+    <div class="confidence ${prog.cls}">
+      <span class="num">${prog.text}</span>景品の変化
+    </div>
+    <div class="confidence ${win.cls}">
+      <span class="num">${win.text}</span>成功見込み
+    </div>`;
+
+  if (pwr) {
+    badgesHtml += `
+    <div class="confidence ${pwr.cls}">
+      <span class="num">${pwr.icon}</span>パワー ${pwr.text}
+    </div>`;
+  }
+  badgesHtml += `</div>`;
+
+  // ---- power card ----
+  let powerCardHtml = '';
+  if (pwr && data.estimated_power) {
+    powerCardHtml = `
+    <div class="advice-card" style="border-color:rgba(255,182,39,0.4);background:rgba(255,182,39,0.06);">
+      <div class="num" style="color:var(--amber)">⚡</div>
+      <div class="body">
+        <h3>パワー推定（${pwr.icon} ${pwr.text}）</h3>
+        <p>${escapeHtml(data.estimated_power)}</p>
+      </div>
+    </div>`;
+  }
+
+  const infoCards = [
+    { title: '景品の変化', text: data.movement_summary },
+    { title: '次のアクション', text: data.next_action_advice },
+    { title: '予算の目安', text: data.budget_advice }
+  ];
+
+  let cardsHtml = '';
+  infoCards.forEach((c, i) => {
+    if (!c.text) return;
+    cardsHtml += `
+      <div class="advice-card">
+        <div class="num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="body">
+          <h3>${escapeHtml(c.title)}</h3>
+          <p>${escapeHtml(c.text)}</p>
+        </div>
+      </div>`;
+  });
+
+  const midNote = midFrame
+    ? '<span style="color:var(--amber)">🎞️ 中間フレーム使用</span> · '
+    : '';
+  const pwrNote = pwr
+    ? '<span style="color:var(--amber)">⚡ パワー推定あり</span> · '
+    : '';
+
+  resultV.innerHTML = frameHtml + recHtml + badgesHtml + powerCardHtml + cardsHtml
+    + `<p class="disclaimer">${midNote}${pwrNote}AIによる画像分析に基づく参考情報です。実際の台の設定により判断が変わる場合があります。</p>`;
+  resultV.classList.remove('hidden');
+}
+
+function renderErrorV(err) {
+  resultV.innerHTML = `
+    <div class="error-box">
+      解析中にエラーが発生しました。${escapeHtml(err.message || '')}<br>
+      もう一度「判定する」を押してお試しください。
+    </div>
+  `;
+  resultV.classList.remove('hidden');
+}
+
+function clampNum(val, fallback) {
+  const n = Number(val);
+  if (isNaN(n)) return fallback;
+  return Math.min(100, Math.max(0, n));
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
